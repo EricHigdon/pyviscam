@@ -25,7 +25,7 @@ cams[0].query('WB')
 """
 
 import sys
-from pyviscam.port import Serial
+from pyviscam.port import Serial, Socket
 from pyviscam.camera import Camera
 
 from pyviscam import debug
@@ -175,3 +175,24 @@ class v_cams(object):
             return reply
         else:
             return None
+
+
+class ip_cams(v_cams):
+    """
+    ip_cams is a list of IP Visca cameras
+    ip_cams is a broadcast command relative to a UDP Socket
+    ip_cams initialisation call _cmd_address_set and _if_clear
+    """
+    def __init__(self, addresses=None):
+        super(v_cams, self).__init__()
+        if addresses is None:
+            addresses = ['127.0.0.1:52381']
+        self.cameras = []
+        for address in addresses:
+            # create a serial port communication
+            self.serial = Socket()
+            self.serial.open(address)
+            self.cameras.append(Camera(self))
+
+    def get_instances(self):
+        return self.cameras

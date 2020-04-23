@@ -67,7 +67,7 @@ class Camera(object):
         if reply:
             if reply[-1:] != '\xff':
                 if debug:
-                    print("ERROR 41 - received packet not terminated correctly: %s" % reply.encode('hex'))
+                    print("ERROR 41 - received packet not terminated correctly: %s" % reply.hex())
                 reply = None
             self.serial.mutex.release()
             return reply

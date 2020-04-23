@@ -3,7 +3,6 @@
 
 import sys
 import glob
-import serial
 try:
     # python 2
     from thread import allocate_lock
@@ -61,6 +60,7 @@ class Serial(object):
         return result
 
     def open(self, portname):
+        import serial
         self.mutex.acquire()
         self.portname = portname
         if (self.port == None):
@@ -110,4 +110,46 @@ class Serial(object):
         else:
             if debug:
                 print("ERROR 15 - no serial port")
+            return False
+
+
+class Socket(Serial):
+    def __init__(self):
+        super().__init__()
+        self.socket = None
+
+    def open(self, address):
+        import socket
+        self.mutex.acquire()
+        self.ip, self.port_name = address.split(':')
+        if (self.socket == None):
+            try:
+                self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                self.socket.bind((self.ip, int(self.port_name)+1))
+                self.mutex.release()
+                return True
+            except:
+                self.socket = None
+                self.mutex.release()
+                return False
+
+    def recv_packet(self, extra_title=None):
+        if self.socket:
+            while True:
+                data, addr = self.socket.recvfrom(1024)
+                print(data)
+                return data
+        else:
+            if debug:
+                print("ERROR 16 - no socket")
+            return False
+
+
+    def _write_packet(self, packet):
+        if self.socket:
+            self.socket.sendto(packet.encode(), (self.ip, int(self.port_name)))
+            return True
+        else:
+            if debug:
+                print("ERROR 15 - no socket")
             return False
